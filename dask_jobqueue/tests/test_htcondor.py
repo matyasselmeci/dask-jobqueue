@@ -8,7 +8,7 @@ import dask
 
 from dask_jobqueue import HTCondorCluster
 
-QUEUE_WAIT = 30  # seconds
+QUEUE_WAIT = 10  # seconds
 
 
 def test_header():
@@ -52,12 +52,17 @@ def test_job_script():
 @pytest.mark.env("htcondor")
 def test_basic(loop):
     with HTCondorCluster(cores=1, memory="100MB", disk="100MB", loop=loop) as cluster:
-        with Client(cluster) as client:
+        with Client(cluster, timeout="10s") as client:
 
+            print("hiiii", file=sys.stderr)
             cluster.scale(2)
+            print(" hi 2", file=sys.stderr)
 
+            sleep(3)
+            print("MATYAS WUZ HERE", file=sys.stderr)
             start = time()
             client.wait_for_workers(2)
+            print("MATYAS WUZ HERE TOO", file=sys.stderr)
 
             future = client.submit(lambda x: x + 1, 10)
             assert future.result(QUEUE_WAIT) == 11
